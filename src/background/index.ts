@@ -5,8 +5,26 @@ import type {
   CheckConfigResponse,
   ExtensionConfig,
   ChatCompletionResponse,
+  DebugLogEntry,
+  DebugInfoResponse,
 } from '@/types'
 import { DEFAULT_CONFIG } from '@/types'
+
+// ========== Debug Logging ==========
+const MAX_LOGS = 200
+
+function formatTime(): string {
+  return new Date().toLocaleString('zh-CN', { hour12: false })
+}
+
+async function addLog(level: DebugLogEntry['level'], message: string, detail?: string) {
+  try {
+    const { debugLogs = [] } = await chrome.storage.local.get('debugLogs') as { debugLogs: DebugLogEntry[] }
+    debugLogs.push({ time: formatTime(), level, message, detail })
+    if (debugLogs.length > MAX_LOGS) debugLogs.splice(0, debugLogs.length - MAX_LOGS)
+    await chrome.storage.local.set({ debugLogs })
+  } catch { /* storage not available */ }
+}
 
 const STYLE_PROMPTS: Record<string, string> = {
   '幽默搞笑': '你的回复风格是幽默搞笑，善于用谐音梗、反转、夸张等手法制造笑点，让人忍不住点赞。',
@@ -30,7 +48,7 @@ chrome.runtime.onMessage.addListener(
   (
     request: ExtensionMessage,
     _sender: chrome.runtime.MessageSender,
-    sendResponse: (response: GenerateReplyResponse | CheckConfigResponse) => void,
+    sendResponse: (response: GenerateReplyResponse | CheckConfigResponse | DebugInfoResponse) => void,
   ) => {
     if (request.type === 'GENERATE_REPLY') {
       handleGenerateReply(request)
@@ -47,6 +65,13 @@ chrome.runtime.onMessage.addListener(
       })
       return true
     }
+
+    if (request.type === 'GET_DEBUG_INFO') {
+      handleGetDebugInfo()
+        .then(sendResponse)
+        .catch(() => sendResponse({ config: DEFAULT_CONFIG, logs: [], version: '1.0.0' }))
+      return true
+    }
   },
 )
 
@@ -56,6 +81,7 @@ async function handleGenerateReply(
   const config = await getConfig()
 
   if (!config.apiKey) {
+    await addLog('error', 'API Key 未配置')
     throw new Error('请先在插件设置中配置 API Key')
   }
 
@@ -84,6 +110,9 @@ async function handleGenerateReply(
   }
 
   const apiUrl = `${config.apiBase}/chat/completions`
+  const { temperature = 0.9, maxTokens = 200 } = await chrome.storage.sync.get({ temperature: 0.9, maxTokens: 200 })
+
+  await addLog('info', '发起 AI 请求', `模型: ${config.model} | 风格: ${config.style} | Temperature: ${temperature}`)
 
   const response = await fetch(apiUrl, {
     method: 'POST',
@@ -97,13 +126,14 @@ async function handleGenerateReply(
         { role: 'system', content: systemMessage },
         { role: 'user', content: userMessage },
       ],
-      max_tokens: 200,
-      temperature: 0.9,
+      max_tokens: maxTokens,
+      temperature,
     }),
   })
 
   if (!response.ok) {
     const errBody = await response.text()
+    await addLog('error', `API 请求失败 (${response.status})`, errBody.slice(0, 500))
     throw new Error(
       `API 请求失败 (${response.status}): ${errBody.slice(0, 200)}`,
     )
@@ -113,10 +143,27 @@ async function handleGenerateReply(
   const reply = data.choices?.[0]?.message?.content?.trim()
 
   if (!reply) {
+    await addLog('error', 'AI 未返回有效内容')
     throw new Error('AI 未返回有效内容')
   }
 
+  await addLog('info', '回复生成成功', reply.slice(0, 100))
   return { reply }
+}
+
+async function handleGetDebugInfo(): Promise<DebugInfoResponse> {
+  const config = await getConfig()
+  const { debugLogs = [] } = await chrome.storage.local.get('debugLogs') as { debugLogs: DebugLogEntry[] }
+  const manifest = chrome.runtime.getManifest()
+
+  return {
+    config: {
+      ...config,
+      apiKey: config.apiKey ? `${config.apiKey.slice(0, 6)}***${config.apiKey.slice(-4)}` : '(未设置)',
+    },
+    logs: debugLogs,
+    version: manifest.version,
+  }
 }
 
 function getConfig(): Promise<ExtensionConfig> {

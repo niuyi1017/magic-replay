@@ -22,7 +22,11 @@ export interface CheckConfigMessage {
   type: 'CHECK_CONFIG'
 }
 
-export type ExtensionMessage = GenerateReplyMessage | CheckConfigMessage
+export interface GetDebugInfoMessage {
+  type: 'GET_DEBUG_INFO'
+}
+
+export type ExtensionMessage = GenerateReplyMessage | CheckConfigMessage | GetDebugInfoMessage
 
 export interface GenerateReplyResponse {
   reply?: string
@@ -31,6 +35,19 @@ export interface GenerateReplyResponse {
 
 export interface CheckConfigResponse {
   configured: boolean
+}
+
+export interface DebugLogEntry {
+  time: string
+  level: 'info' | 'warn' | 'error'
+  message: string
+  detail?: string
+}
+
+export interface DebugInfoResponse {
+  config: Omit<ExtensionConfig, 'apiKey'> & { apiKey: string }
+  logs: DebugLogEntry[]
+  version: string
 }
 
 // ========== 配置 ==========

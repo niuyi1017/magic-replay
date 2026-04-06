@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小红书神回复 - 设置</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="page">
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h1>⚡ 小红书神回复</h1>
+      </div>
+      <nav class="nav">
+        <button class="nav-item active" data-tab="settings">
+          <span class="nav-icon">⚙️</span> 插件设置
+        </button>
+        <button class="nav-item" data-tab="debug">
+          <span class="nav-icon">🐛</span> 调试信息
+        </button>
+      </nav>
+      <div class="sidebar-footer">v1.0.0</div>
+    </div>
+
+    <main class="main">
+      <!-- Settings Tab -->
+      <div class="tab-panel active" id="tab-settings">
+        <h2>插件设置</h2>
+
+        <form id="settingsForm">
+          <div class="card">
+            <h3>🔑 API 配置</h3>
+            <div class="field">
+              <label for="apiBase">API Base URL</label>
+              <input type="url" id="apiBase" placeholder="https://api.openai.com/v1" />
+              <p class="hint">支持 OpenAI 兼容 API，如国内中转地址</p>
+            </div>
+            <div class="field">
+              <label for="apiKey">API Key</label>
+              <div class="key-input-wrapper">
+                <input type="password" id="apiKey" placeholder="sk-..." />
+                <button type="button" id="toggleKey" class="toggle-btn" title="显示/隐藏">👁</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="model">模型名称</label>
+              <input type="text" id="model" placeholder="gpt-4o-mini" />
+              <p class="hint">推荐 gpt-4o-mini（快速）或 gpt-4o（质量更高）</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>🎨 回复风格</h3>
+            <div class="style-grid">
+              <label class="style-option">
+                <input type="radio" name="style" value="幽默搞笑" />
+                <span class="style-card">😂 幽默搞笑</span>
+              </label>
+              <label class="style-option">
+                <input type="radio" name="style" value="毒舌犀利" />
+                <span class="style-card">🗡️ 毒舌犀利</span>
+              </label>
+              <label class="style-option">
+                <input type="radio" name="style" value="暖心共情" />
+                <span class="style-card">💗 暖心共情</span>
+              </label>
+              <label class="style-option">
+                <input type="radio" name="style" value="知识科普" />
+                <span class="style-card">📚 知识科普</span>
+              </label>
+              <label class="style-option">
+                <input type="radio" name="style" value="custom" />
+                <span class="style-card">✏️ 自定义</span>
+              </label>
+            </div>
+            <div class="field" id="customStyleField" style="display:none;">
+              <label for="customStyle">自定义风格描述</label>
+              <textarea id="customStyle" rows="3" placeholder="例如：用东北话回复，带点调侃但不失真诚"></textarea>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>🔧 高级选项</h3>
+            <div class="field">
+              <label for="temperature">创造性（Temperature）</label>
+              <div class="range-row">
+                <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.9" />
+                <span class="range-value" id="temperatureValue">0.9</span>
+              </div>
+              <p class="hint">越高越有创意，越低越稳定。推荐 0.7~1.2</p>
+            </div>
+            <div class="field">
+              <label for="maxTokens">最大字数（Max Tokens）</label>
+              <input type="number" id="maxTokens" min="50" max="1000" step="10" value="200" />
+              <p class="hint">控制回复长度上限，推荐 100~300</p>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="btn btn-test" id="btnTest">🧪 测试连接</button>
+            <button type="submit" class="btn btn-save">💾 保存设置</button>
+          </div>
+          <div id="status" class="status"></div>
+        </form>
+      </div>
+
+      <!-- Debug Tab -->
+      <div class="tab-panel" id="tab-debug">
+        <div class="debug-header">
+          <h2>调试信息</h2>
+          <div class="debug-actions">
+            <button class="btn btn-sm" id="btnRefreshDebug">🔄 刷新</button>
+            <button class="btn btn-sm btn-danger" id="btnClearLogs">🗑️ 清空日志</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>📋 当前配置</h3>
+          <div class="debug-config" id="debugConfig">
+            <div class="config-row">
+              <span class="config-key">加载中...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>📊 运行日志</h3>
+          <div class="debug-toolbar">
+            <select id="logFilter" class="log-filter">
+              <option value="all">全部</option>
+              <option value="info">Info</option>
+              <option value="warn">Warning</option>
+              <option value="error">Error</option>
+            </select>
+            <span class="log-count" id="logCount">0 条记录</span>
+          </div>
+          <div class="log-container" id="logContainer">
+            <div class="log-empty">暂无日志</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="./main.ts"></script>
+</body>
+
+</html>
