@@ -107,16 +107,21 @@ function injectButtonForComment(commentEl: Element | null): void {
 }
 
 function injectPostButton(): void {
+  // Already injected and still in DOM — skip
+  if (document.getElementById('xhs-magic-post-btn')) return
+
   const engageBar =
-    document.querySelector(
-      '.engage-bar-container .engage-bar .input-box',
-    ) || document.querySelector('.engage-bar .input-box')
+    document.querySelector('.engage-bar-container') ||
+    document.querySelector('.engage-bar')
   if (!engageBar) return
-  if (engageBar.querySelector(`[${BUTTON_FLAG}="post"]`)) return
+
+  // Create a standalone wrapper outside the framework-managed DOM
+  const wrapper = document.createElement('div')
+  wrapper.id = 'xhs-magic-post-btn'
+  wrapper.setAttribute(BUTTON_FLAG, 'post')
 
   const btn = document.createElement('button')
   btn.className = 'xhs-magic-reply-post-btn'
-  btn.setAttribute(BUTTON_FLAG, 'post')
   btn.innerHTML = '⚡ 神回复'
   btn.addEventListener('click', (e) => {
     e.preventDefault()
@@ -124,7 +129,9 @@ function injectPostButton(): void {
     onMagicReply(null)
   })
 
-  engageBar.parentElement?.appendChild(btn)
+  wrapper.appendChild(btn)
+  // Insert as a sibling AFTER the engage-bar container, outside the framework's control
+  engageBar.parentElement?.insertBefore(wrapper, engageBar.nextSibling)
 }
 
 // ========== 浮窗 ==========
@@ -326,43 +333,43 @@ async function onMagicReply(
 
 function fillReply(
   text: string,
-  targetComment: CommentData | null,
+  _targetComment: CommentData | null,
 ): void {
-  if (targetComment?.element) {
-    const replyBtn =
-      targetComment.element.querySelector('.reply.icon-container') ||
-      targetComment.element.querySelector('.reply')
-    if (replyBtn) {
-      ;(replyBtn as HTMLElement).click()
-      setTimeout(() => insertText(text), 300)
-      return
-    }
-  }
-
-  insertText(text)
+  copyToClipboard(text)
 }
 
-function insertText(text: string): void {
-  const textarea = document.getElementById('content-textarea')
-  if (!textarea) {
-    alert('找不到评论输入框，请手动粘贴：\n\n' + text)
-    return
-  }
-
-  textarea.focus()
-  textarea.textContent = ''
-  textarea.textContent = text
-
-  textarea.dispatchEvent(new Event('input', { bubbles: true }))
-  textarea.dispatchEvent(new Event('compositionend', { bubbles: true }))
-  textarea.dispatchEvent(new Event('change', { bubbles: true }))
-
+async function copyToClipboard(text: string): Promise<void> {
   try {
-    document.execCommand('selectAll', false, undefined)
-    document.execCommand('insertText', false, text)
+    await navigator.clipboard.writeText(text)
+    showToast('✅ 已复制到剪贴板，请粘贴到评论框')
   } catch {
-    // Fallback already set via textContent
+    // Fallback for older browsers or permission denied
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    document.execCommand('copy')
+    document.body.removeChild(textarea)
+    showToast('✅ 已复制到剪贴板，请粘贴到评论框')
   }
+}
+
+function showToast(msg: string): void {
+  const existing = document.getElementById('xhs-magic-toast')
+  if (existing) existing.remove()
+
+  const toast = document.createElement('div')
+  toast.id = 'xhs-magic-toast'
+  toast.textContent = msg
+  toast.style.cssText =
+    'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);' +
+    'background:#333;color:#fff;padding:10px 20px;border-radius:8px;' +
+    'font-size:14px;z-index:999999;pointer-events:none;' +
+    'animation:xhs-toast-fade 2s ease-in-out forwards;'
+  document.body.appendChild(toast)
+  setTimeout(() => toast.remove(), 2500)
 }
 
 // ========== 工具函数 ==========
@@ -389,14 +396,17 @@ function escapeHtml(str: string): string {
 
 // ========== 初始化 & 观察 ==========
 
+let observer: MutationObserver | null = null
+let injecting = false
+
 function init(): void {
   if (!isNotePage()) return
 
   injectButtons()
 
-  const observer = new MutationObserver(
+  observer = new MutationObserver(
     debounce(() => {
-      if (isNotePage()) {
+      if (!injecting && isNotePage()) {
         injectButtons()
       }
     }, 500),
@@ -409,8 +419,15 @@ function init(): void {
 }
 
 function injectButtons(): void {
-  injectCommentButtons()
-  injectPostButton()
+  injecting = true
+  try {
+    injectCommentButtons()
+    injectPostButton()
+  } finally {
+    // Defer resetting the flag so the mutation triggered by our DOM changes
+    // is still suppressed when the observer callback runs.
+    setTimeout(() => { injecting = false }, 100)
+  }
 }
 
 function isNotePage(): boolean {
