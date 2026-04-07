@@ -1,8 +1,28 @@
 {
   "name": "xhs-magic-reply",
   "version": "1.0.0",
-  "private": true,
+  "description": "AI 驱动的小红书神回复生成器 | AI-powered reply generator for Xiaohongshu",
   "type": "module",
+  "license": "Apache-2.0",
+  "author": "niuyi1017",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/niuyi1017/auto-replay.git"
+  },
+  "homepage": "https://github.com/niuyi1017/auto-replay",
+  "bugs": {
+    "url": "https://github.com/niuyi1017/auto-replay/issues"
+  },
+  "keywords": [
+    "chrome-extension",
+    "xiaohongshu",
+    "xhs",
+    "ai",
+    "reply-generator",
+    "manifest-v3",
+    "openai",
+    "deepseek"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
