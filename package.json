@@ -1,0 +1,38 @@
+{
+  "name": "magic-reply",
+  "version": "1.0.0",
+  "description": "AI 驱动的小红书神回复生成器 | AI-powered reply generator for Xiaohongshu",
+  "type": "module",
+  "license": "Apache-2.0",
+  "author": "niuyi1017",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/niuyi1017/magic-reply.git"
+  },
+  "homepage": "https://github.com/niuyi1017/magic-reply",
+  "bugs": {
+    "url": "https://github.com/niuyi1017/magic-reply/issues"
+  },
+  "keywords": [
+    "chrome-extension",
+    "xiaohongshu",
+    "xhs",
+    "ai",
+    "reply-generator",
+    "manifest-v3",
+    "openai",
+    "deepseek"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^2.0.0-beta.28",
+    "@types/chrome": "^0.0.287",
+    "@types/node": "^25.5.2",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0"
+  }
+}

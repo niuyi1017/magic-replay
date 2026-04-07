@@ -10,8 +10,9 @@
   "host_permissions": [
     "https://www.xiaohongshu.com/*"
   ],
+  "options_page": "src/options/index.html",
   "action": {
-    "default_popup": "popup/popup.html",
+    "default_popup": "src/popup/index.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -24,7 +25,7 @@
     "128": "icons/icon128.png"
   },
   "background": {
-    "service_worker": "background/background.js"
+    "service_worker": "src/background/index.ts"
   },
   "content_scripts": [
     {
@@ -32,10 +33,10 @@
         "https://www.xiaohongshu.com/*"
       ],
       "js": [
-        "content/content.js"
+        "src/content/index.ts"
       ],
       "css": [
-        "content/content.css"
+        "src/content/style.css"
       ],
       "run_at": "document_idle"
     }
