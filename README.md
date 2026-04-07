@@ -31,7 +31,18 @@ AI 驱动的小红书神回复生成器 —— 一键生成有趣、犀利、暖
 
 ## 📦 安装
 
-### 从源码构建
+### 方式一：下载 Release（推荐）
+
+1. 前往 [Releases](https://github.com/niuyi1017/magic-reply/releases) 页面，下载最新版本的 `dist.zip`
+2. 解压 `dist.zip` 到任意目录
+3. 打开 Chrome，访问 `chrome://extensions/`
+4. 开启右上角「开发者模式」
+5. 点击「加载已解压的扩展程序」
+6. 选择解压后的 `dist` 目录
+
+> ⚠️ 请勿删除解压后的文件夹，Chrome 需要持续读取该目录。
+
+### 方式二：从源码构建
 
 1. **克隆仓库**
 
