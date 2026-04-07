@@ -1,5 +1,5 @@
 {
-  "name": "xhs-magic-reply",
+  "name": "magic-reply",
   "version": "1.0.0",
   "description": "AI 驱动的小红书神回复生成器 | AI-powered reply generator for Xiaohongshu",
   "type": "module",
@@ -7,11 +7,11 @@
   "author": "niuyi1017",
   "repository": {
     "type": "git",
-    "url": "https://github.com/niuyi1017/auto-replay.git"
+    "url": "https://github.com/niuyi1017/magic-reply.git"
   },
-  "homepage": "https://github.com/niuyi1017/auto-replay",
+  "homepage": "https://github.com/niuyi1017/magic-reply",
   "bugs": {
-    "url": "https://github.com/niuyi1017/auto-replay/issues"
+    "url": "https://github.com/niuyi1017/magic-reply/issues"
   },
   "keywords": [
     "chrome-extension",

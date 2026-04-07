@@ -36,8 +36,8 @@ AI 驱动的小红书神回复生成器 —— 一键生成有趣、犀利、暖
 1. **克隆仓库**
 
 ```bash
-git clone https://github.com/niuyi1017/auto-replay.git
-cd auto-replay
+git clone https://github.com/niuyi1017/magic-reply.git
+cd magic-reply
 ```
 
 2. **安装依赖**
@@ -100,7 +100,7 @@ pnpm dev
 ## 🏗️ 项目结构
 
 ```
-auto-replay/
+magic-reply/
 ├── manifest.json          # Chrome 扩展配置 (Manifest V3)
 ├── package.json           # 项目依赖与脚本
 ├── tsconfig.json          # TypeScript 配置

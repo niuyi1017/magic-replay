@@ -36,8 +36,8 @@ Screenshot placeholder: replace with actual screenshots
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/niuyi1017/auto-replay.git
-cd auto-replay
+git clone https://github.com/niuyi1017/magic-reply.git
+cd magic-reply
 ```
 
 2. **Install dependencies**
@@ -101,7 +101,7 @@ Starts a Vite dev server with hot reload. After loading the `dist` directory, co
 ## 🏗️ Project Structure
 
 ```
-auto-replay/
+magic-reply/
 ├── manifest.json          # Chrome Extension config (Manifest V3)
 ├── package.json           # Dependencies & scripts
 ├── tsconfig.json          # TypeScript configuration

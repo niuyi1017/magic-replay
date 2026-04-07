@@ -14,8 +14,8 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/niuyi1017/auto-replay.git
-cd auto-replay
+git clone https://github.com/niuyi1017/magic-reply.git
+cd magic-reply
 
 # 安装依赖
 pnpm install
@@ -51,7 +51,7 @@ pnpm build
 
 ### Bug 报告
 
-请使用 [Bug 报告模板](https://github.com/niuyi1017/auto-replay/issues/new?template=bug_report.md) 并提供：
+请使用 [Bug 报告模板](https://github.com/niuyi1017/magic-reply/issues/new?template=bug_report.md) 并提供：
 
 - 浏览器版本
 - 扩展版本
@@ -61,7 +61,7 @@ pnpm build
 
 ### 功能建议
 
-请使用 [功能请求模板](https://github.com/niuyi1017/auto-replay/issues/new?template=feature_request.md) 描述你的想法。
+请使用 [功能请求模板](https://github.com/niuyi1017/magic-reply/issues/new?template=feature_request.md) 描述你的想法。
 
 ## 提交 Pull Request
 
