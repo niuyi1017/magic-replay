@@ -4,6 +4,7 @@ export interface CommentPayload {
   username: string
   content: string
   isAuthor: boolean
+  likes?: string
 }
 
 export interface TargetCommentPayload {
@@ -11,11 +12,20 @@ export interface TargetCommentPayload {
   content: string
 }
 
+export interface GenerateReplyOverrides {
+  model?: string
+  style?: string
+  customStyle?: string
+  temperature?: number
+  maxTokens?: number
+}
+
 export interface GenerateReplyMessage {
   type: 'GENERATE_REPLY'
   postContent: string
   comments: CommentPayload[]
   targetComment: TargetCommentPayload | null
+  overrides?: GenerateReplyOverrides
 }
 
 export interface CheckConfigMessage {
@@ -63,7 +73,7 @@ export interface ExtensionConfig {
 export const DEFAULT_CONFIG: ExtensionConfig = {
   apiBase: 'https://api.openai.com/v1',
   apiKey: '',
-  model: 'gpt-4o-mini',
+  model: 'deepseek-v3-2-251201',
   style: '幽默搞笑',
   customStyle: '',
 }

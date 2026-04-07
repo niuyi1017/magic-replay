@@ -4,6 +4,8 @@ import type {
   GenerateReplyResponse,
   CheckConfigResponse,
   ExtensionMessage,
+  ExtensionConfig,
+  GenerateReplyOverrides,
 } from '@/types'
 
 const BUTTON_FLAG = 'data-xhs-magic'
@@ -136,15 +138,67 @@ function injectPostButton(): void {
 
 // ========== 浮窗 ==========
 
-function showModal(title: string): void {
+const STYLE_OPTIONS = ['幽默搞笑', '毒舌犀利', '暖心共情', '知识科普', 'custom'] as const
+const MODEL_OPTIONS = ['deepseek-v3-2-251201', 'doubao-seed-2-0-pro-260215'] as const
+
+async function getStoredConfig(): Promise<ExtensionConfig> {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get({
+      model: 'deepseek-v3-2-251201',
+      style: '幽默搞笑',
+      customStyle: '',
+    }, (items) => {
+      resolve(items as ExtensionConfig)
+    })
+  })
+}
+
+async function getStoredGenParams(): Promise<{ temperature: number; maxTokens: number }> {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get({ temperature: 0.9, maxTokens: 200 }, (items) => {
+      resolve(items as { temperature: number; maxTokens: number })
+    })
+  })
+}
+
+function getModalOverrides(): GenerateReplyOverrides {
+  const model = (document.getElementById('xhs-cfg-model') as HTMLSelectElement | null)?.value
+  const style = (document.getElementById('xhs-cfg-style') as HTMLSelectElement | null)?.value
+  const customStyle = (document.getElementById('xhs-cfg-custom-style') as HTMLInputElement | null)?.value?.trim()
+  const tempVal = (document.getElementById('xhs-cfg-temp') as HTMLInputElement | null)?.value
+  const maxVal = (document.getElementById('xhs-cfg-max') as HTMLInputElement | null)?.value
+
+  return {
+    ...(model ? { model } : {}),
+    ...(style ? { style } : {}),
+    ...(style === 'custom' && customStyle ? { customStyle } : {}),
+    ...(tempVal ? { temperature: parseFloat(tempVal) } : {}),
+    ...(maxVal ? { maxTokens: parseInt(maxVal, 10) } : {}),
+  }
+}
+
+async function showModal(title: string): Promise<void> {
   closeModal()
+
+  const config = await getStoredConfig()
+  const genParams = await getStoredGenParams()
 
   const overlay = document.createElement('div')
   overlay.className = 'xhs-magic-modal-overlay'
   overlay.id = 'xhs-magic-modal'
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) closeModal()
-  })
+
+  const styleOptions = STYLE_OPTIONS.map((s) => {
+    const label = s === 'custom' ? '自定义' : s
+    const selected = s === config.style ? ' selected' : ''
+    return `<option value="${s}"${selected}>${label}</option>`
+  }).join('')
+
+  const modelOptions = MODEL_OPTIONS.map((m) => {
+    const selected = m === (config.model || MODEL_OPTIONS[0]) ? ' selected' : ''
+    return `<option value="${m}"${selected}>${m}</option>`
+  }).join('')
+
+  const customStyleDisplay = config.style === 'custom' ? 'block' : 'none'
 
   overlay.innerHTML = `
     <div class="xhs-magic-modal">
@@ -152,13 +206,43 @@ function showModal(title: string): void {
         <h3>⚡ ${title}</h3>
         <button class="xhs-magic-modal-close" id="xhs-modal-close">✕</button>
       </div>
+
       <div class="xhs-magic-modal-body" id="xhs-modal-body">
-        <div class="xhs-magic-loading">
-          <div class="spinner"></div>
-          <div>正在生成神回复...</div>
+        <div class="xhs-magic-placeholder">调整设置后点击下方按钮生成</div>
+      </div>
+      <div class="xhs-magic-modal-footer" id="xhs-modal-footer">
+        <button class="xhs-magic-btn xhs-magic-btn-ghost" id="xhs-btn-cancel">取消</button>
+        <button class="xhs-magic-btn xhs-magic-btn-primary" id="xhs-btn-generate">⚡ 生成回复</button>
+      </div>
+
+      <div class="xhs-magic-settings" id="xhs-settings-panel">
+        <div class="xhs-settings-row">
+          <div class="xhs-settings-group">
+            <label class="xhs-settings-label">模型</label>
+            <select class="xhs-settings-select" id="xhs-cfg-model">${modelOptions}</select>
+          </div>
+          <div class="xhs-settings-group">
+            <label class="xhs-settings-label">风格</label>
+            <select class="xhs-settings-select" id="xhs-cfg-style">${styleOptions}</select>
+          </div>
+        </div>
+        <div class="xhs-settings-row" id="xhs-custom-style-row" style="display:${customStyleDisplay}">
+          <div class="xhs-settings-group xhs-settings-group-full">
+            <label class="xhs-settings-label">自定义风格描述</label>
+            <input type="text" class="xhs-settings-input" id="xhs-cfg-custom-style" value="${escapeHtml(config.customStyle || '')}" placeholder="例如：温柔知性、学术风…" />
+          </div>
+        </div>
+        <div class="xhs-settings-row">
+          <div class="xhs-settings-group">
+            <label class="xhs-settings-label">创造性 <span class="xhs-settings-value" id="xhs-temp-display">${genParams.temperature}</span></label>
+            <input type="range" class="xhs-settings-range" id="xhs-cfg-temp" min="0" max="2" step="0.1" value="${genParams.temperature}" />
+          </div>
+          <div class="xhs-settings-group">
+            <label class="xhs-settings-label">最大字数</label>
+            <input type="number" class="xhs-settings-input xhs-settings-input-sm" id="xhs-cfg-max" value="${genParams.maxTokens}" min="50" max="1000" step="50" />
+          </div>
         </div>
       </div>
-      <div class="xhs-magic-modal-footer" id="xhs-modal-footer" style="display:none;"></div>
     </div>
   `
 
@@ -166,6 +250,23 @@ function showModal(title: string): void {
   document
     .getElementById('xhs-modal-close')
     ?.addEventListener('click', closeModal)
+  document
+    .getElementById('xhs-btn-cancel')
+    ?.addEventListener('click', closeModal)
+
+  // Toggle custom style row
+  document.getElementById('xhs-cfg-style')?.addEventListener('change', (e) => {
+    const row = document.getElementById('xhs-custom-style-row')
+    if (row) {
+      row.style.display = (e.target as HTMLSelectElement).value === 'custom' ? 'flex' : 'none'
+    }
+  })
+
+  // Live temperature display
+  document.getElementById('xhs-cfg-temp')?.addEventListener('input', (e) => {
+    const display = document.getElementById('xhs-temp-display')
+    if (display) display.textContent = (e.target as HTMLInputElement).value
+  })
 }
 
 function updateModalResult(
@@ -273,16 +374,20 @@ async function onMagicReply(
     ? `回复：${targetComment.username}`
     : '生成神评论'
 
-  showModal(title)
+  await showModal(title)
 
   function doGenerate(): void {
     generating = true
+    updateModalLoading()
 
     const commentPayloads: CommentPayload[] = comments.map((c) => ({
       username: c.username,
       content: c.content,
       isAuthor: c.isAuthor,
+      likes: c.likes,
     }))
+
+    const overrides = getModalOverrides()
 
     sendMessage({
       type: 'GENERATE_REPLY',
@@ -294,6 +399,7 @@ async function onMagicReply(
             content: targetComment.content,
           }
         : null,
+      overrides,
     } as ExtensionMessage)
       .then((result) => {
         generating = false
@@ -326,7 +432,10 @@ async function onMagicReply(
       })
   }
 
-  doGenerate()
+  // Bind generate button — do NOT auto-generate
+  document.getElementById('xhs-btn-generate')?.addEventListener('click', () => {
+    doGenerate()
+  })
 }
 
 // ========== 回复填入 ==========
