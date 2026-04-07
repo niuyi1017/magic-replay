@@ -31,7 +31,18 @@ Screenshot placeholder: replace with actual screenshots
 
 ## 📦 Installation
 
-### Build from Source
+### Option 1: Download Release (Recommended)
+
+1. Go to the [Releases](https://github.com/niuyi1017/magic-reply/releases) page and download the latest `dist.zip`
+2. Unzip `dist.zip` to any directory
+3. Open Chrome and navigate to `chrome://extensions/`
+4. Enable "Developer mode" (top-right toggle)
+5. Click "Load unpacked"
+6. Select the unzipped `dist` folder
+
+> ⚠️ Do not delete the unzipped folder — Chrome needs to read from it continuously.
+
+### Option 2: Build from Source
 
 1. **Clone the repository**
 
